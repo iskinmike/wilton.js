@@ -482,7 +482,7 @@ define([
                 utils.callOrThrow(callback, e);
             }
         },
-        
+
         /**
          * @function sendResponseLater
          * 
@@ -497,13 +497,12 @@ define([
          */
         sendResponseLater: function(callback) {
             try {
-                this._setMeta(opts);
-                // data
-                var json = wiltoncall("request_send_later", {
+                var json_str = wiltoncall("request_send_later", {
                     requestHandle: this.handle
                 });
                 utils.callOrIgnore(callback);
-                return json;
+                var json = JSON.parse(json_str);
+                return json.responseWriterHandle;
             } catch (e) {
                 utils.callOrThrow(callback, e);
             }

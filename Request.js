@@ -482,6 +482,78 @@ define([
                 utils.callOrThrow(callback, e);
             }
         },
+        
+        /**
+         * @function sendResponseLater
+         * 
+         * Send string or JSON response to client later.
+         * 
+         * Creates response writer and returns it handler number. 
+         * It allow to send response later, using writer handler number and differend response handler.
+         * 
+         * @param callback `Function|Undefined` callback to receive result or error
+         * @return `Object` in json format containing 'responseWriterHandle' property, needed for later response  
+         * 
+         */
+        sendResponseLater: function(callback) {
+            try {
+                this._setMeta(opts);
+                // data
+                var json = wiltoncall("request_send_later", {
+                    requestHandle: this.handle
+                });
+                utils.callOrIgnore(callback);
+                return json;
+            } catch (e) {
+                utils.callOrThrow(callback, e);
+            }
+        },
+
+        /**
+         * @function sendResponse
+         * 
+         * Send string or JSON response to client.
+         * 
+         * Sends response to client converting specified object into
+         * JSON if necessary (`Content-Type` is set to `application/json` in
+         * this case).
+         * 
+         * @param data `int` writer handler id, can be recieved from sendResponseLater
+         * @param data `String|Object` response body, object will be converted to JSON
+         * @param options `Object|Undefined` configuration object, see possible options below
+         * @param callback `Function|Undefined` callback to receive result or error
+         * @return `Undefined`
+         * 
+         * __Options__
+         *  - __meta__ `Object` response metadata
+         *    - __statusCode__ `Number` HTTP status code
+         *    - __statusMessage__ `String` HTTP status message
+         *    - __headers__ `Object` response headers in `"Header-Name": "value"` format
+         */
+        sendResponseWithWriter: function(writer_handle, data, options, callback) {
+            var opts = utils.defaultObject(options);
+            try {
+                // metatada
+                if ("object" === typeof(data)) {
+                    // sending json
+                    opts.meta = utils.defaultObject(opts.meta);
+                    opts.meta.headers = utils.defaultObject(opts.meta.headers);
+                    if ("undefined" === typeof(opts.meta.headers["Content-Type"])) {
+                        opts.meta.headers["Content-Type"] = "application/json";
+                    }
+                }
+                this._setMeta(opts);
+                // data
+                var dt = utils.defaultJson(data);
+                wiltoncall("request_send_with_response_writer", {
+                    responseWriterHandle: writer_handle,
+                    data: dt
+                });
+                utils.callOrIgnore(callback);
+            } catch (e) {
+                utils.callOrThrow(callback, e);
+            }
+        },
  
         _setMeta: function(opts) {
             if ("object" === typeof (opts.meta) && null !== opts.meta) {
